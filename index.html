@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BookStudio — Writing</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="top-left">
+      <div class="brand">
+        <div class="logo">✍️</div>
+        <div class="brand-text">
+          <div class="brand-title" id="projectTitle">BookStudio</div>
+          <div class="brand-sub" id="projectSub">0 words</div>
+        </div>
+      </div>
+
+      <div class="top-search">
+        <input id="globalSearch" class="input" placeholder="Search (Ctrl+K) — text, chapters, cards…" />
+        <button id="btnSearch" class="btn ghost">Search</button>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <button id="btnNewItem" class="btn">New</button>
+
+      <button id="btnExportProject" class="btn ghost">Export Project</button>
+      <label class="btn ghost" for="importFile">Import</label>
+      <input id="importFile" type="file" accept="application/json,.json" hidden />
+    </div>
+  </header>
+
+  <div class="app">
+    <!-- LEFT -->
+    <aside class="pane pane-left">
+      <nav class="nav">
+        <button class="nav-item active" data-section="draft">
+          <span class="ni-ico">📚</span><span class="ni-text">Chapters</span>
+        </button>
+        <button class="nav-item" data-section="library">
+          <span class="ni-ico">🏛️</span><span class="ni-text">Library</span>
+        </button>
+        <button class="nav-item" data-section="settings">
+          <span class="ni-ico">⚙️</span><span class="ni-text">Settings</span>
+        </button>
+      </nav>
+
+      <div class="status-card">
+        <div class="status-row">
+          <div class="pill" id="saveState">Save</div>
+          <div class="muted small" id="lastSaved">—</div>
+        </div>
+        <button id="btnWipeAll" class="btn danger ghost">Wipe Local Data</button>
+      </div>
+    </aside>
+
+    <!-- MIDDLE -->
+    <section class="pane pane-mid">
+      <div class="pane-head">
+        <div class="pane-title" id="listTitle">Chapters</div>
+        <div class="pane-tools">
+          <select id="libraryCategoryFilter" class="input" style="display:none; max-width:180px;"></select>
+          <button id="btnAdd" class="btn">+</button>
+        </div>
+      </div>
+
+      <div class="pane-body">
+        <input id="listFilter" class="input" placeholder="Filter…" />
+        <div id="list" class="list"></div>
+        <div id="listEmpty" class="empty" style="display:none;">No items.</div>
+      </div>
+    </section>
+
+    <!-- EDITOR -->
+    <main class="pane pane-editor">
+      <div class="pane-head">
+        <div class="pane-title">
+          <span id="editorTitleStatic">—</span>
+          <input id="editorTitleInput" class="input" style="display:none; max-width:520px;" />
+          <span class="muted small" id="editorMeta"></span>
+        </div>
+
+        <div class="pane-tools">
+          <button id="btnAnnotate" class="btn ghost">Annotate Selection</button>
+          <button id="btnMakeCard" class="btn ghost">Create Card</button>
+          <button id="btnDelete" class="btn danger ghost">Delete</button>
+        </div>
+      </div>
+
+      <div class="pane-body right-body">
+        <section id="draftEditorWrap" class="right-section">
+          <div class="editor-shell">
+            <div id="editor"></div>
+          </div>
+        </section>
+
+        <section id="libraryEditorWrap" class="right-section" style="display:none;">
+          <div class="form">
+            <div class="grid2">
+              <div class="field">
+                <label>Category</label>
+                <select id="cardCategory" class="input"></select>
+              </div>
+              <div class="field">
+                <label>Title</label>
+                <input id="cardTitle" class="input" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Fields (key: value)</label>
+              <div class="row">
+                <input id="fieldKey" class="input" placeholder="e.g. Age" />
+                <input id="fieldValue" class="input" placeholder="e.g. 32" />
+                <button id="btnAddField" class="btn">Add Field</button>
+              </div>
+              <div id="fieldsList" class="mini-list"></div>
+            </div>
+
+            <div class="field">
+              <label>Body</label>
+              <textarea id="cardBody" class="input" rows="10" placeholder="Notes, description, details…"></textarea>
+            </div>
+
+            <div class="row">
+              <button id="btnSaveCard" class="btn">Save</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="settingsWrap" class="right-section" style="display:none;">
+          <div class="form">
+            <div class="field">
+              <label>Project Name</label>
+              <input id="projectName" class="input" placeholder="My novel" />
+            </div>
+
+            <div class="field">
+              <label>Library Categories (comma-separated)</label>
+              <input id="libraryCategories" class="input" placeholder="Characters, Places, Items…" />
+              <div class="hint">Add anything you want. Cards use these categories.</div>
+            </div>
+
+            <div class="hint">
+              Shortcuts: Ctrl+K (search) · Ctrl+S (save)
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- INSPECTOR -->
+    <aside class="pane pane-inspector">
+      <div class="pane-head">
+        <div class="pane-title">Inspector</div>
+        <div class="pane-tools">
+          <button class="btn ghost inspector-tab active" data-tab="annotations">Annotations</button>
+          <button class="btn ghost inspector-tab" data-tab="card">Card</button>
+        </div>
+      </div>
+
+      <div class="pane-body inspector-body">
+        <section id="inspectorAnnotations" class="inspector-section">
+          <div class="inspector">
+            <div class="inspector-head">
+              <div class="inspector-title">Annotations</div>
+              <button id="btnClearComments" class="btn ghost">Clear All</button>
+            </div>
+            <div id="commentsEmpty" class="empty">No annotations.</div>
+            <div id="commentsList" class="list"></div>
+          </div>
+        </section>
+
+        <section id="inspectorCard" class="inspector-section" style="display:none;">
+          <div class="inspector">
+            <div class="inspector-head">
+              <div class="inspector-title" id="inspectorCardTitle">No card selected</div>
+              <button id="btnOpenInLibrary" class="btn ghost" style="display:none;">Open in Library</button>
+            </div>
+
+            <div id="inspectorCardMeta" class="muted small" style="margin-bottom:10px;"></div>
+            <div id="inspectorCardFields" class="mini-list"></div>
+
+            <div class="field" style="margin-top:10px;">
+              <label>Body</label>
+              <div id="inspectorCardBody" class="selection-box" style="background:#fff;"></div>
+            </div>
+
+            <div id="inspectorCardEmpty" class="empty">Click a linked word in the text to preview its card.</div>
+          </div>
+        </section>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Modal annotation -->
+  <div class="modal" id="modal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div class="modal-title">New Annotation</div>
+        <button class="btn ghost" id="modalClose">✕</button>
+      </div>
+      <div class="field">
+        <label>Selected text</label>
+        <div id="modalSelection" class="selection-box"></div>
+      </div>
+      <div class="field">
+        <label>Comment</label>
+        <textarea id="modalComment" class="input" rows="7" placeholder="Note, intent, TODO…"></textarea>
+      </div>
+      <div class="row">
+        <button class="btn" id="modalSave">Save</button>
+        <button class="btn ghost" id="modalCancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Start Modal -->
+  <div class="modal show" id="startModal" aria-hidden="false">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div class="modal-title">Welcome</div>
+      </div>
+
+      <div class="hint">
+        Create a project (and download your project file) or import an existing project.
+      </div>
+
+      <div class="field">
+        <label>Project name</label>
+        <input id="startProjectName" class="input" placeholder="My novel" />
+      </div>
+
+      <div class="row">
+        <button id="btnCreateProject" class="btn">Create Project</button>
+        <label class="btn ghost" for="startImportFile">Import Project</label>
+        <input id="startImportFile" type="file" accept="application/json,.json" hidden />
+      </div>
+
+      <div class="hint small muted">
+        Browsers can’t write into your GitHub repo automatically. Export downloads a file you can place at repo root if you want.
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
